@@ -63,6 +63,7 @@
     <Compile Include="Assets\Script\KeyPressEvent.cs" />
     <Compile Include="Assets\Script\MainMenuScript.cs" />
     <Compile Include="Assets\Script\SceneLoader.cs" />
+    <Compile Include="Assets\Script\Score.cs" />
     <Compile Include="Assets\Script\Singleton.cs" />
     <Compile Include="Assets\Script\Storage.cs" />
     <Reference Include="Unity.Timeline.Editor">

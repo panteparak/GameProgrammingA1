@@ -9,14 +9,25 @@ public class Storage : Singleton<Storage>
     private long Repeat = 1;
     private bool GameOver = false;
     private List<String> OriginalSequence = new List<String>();
+    private int score = 0;
     
     protected Storage() { }
 
 
+    public void setScore(int s)
+    {
+        this.score = s;
+    }
+
+    public int getScore()
+    {
+        return score;
+    }
     public void Clear()
     {
         KeyPressed = false;
         Repeat = 1;
+        score = 0;
         GameOver = false;
         OriginalSequence = new List<string>();
     }

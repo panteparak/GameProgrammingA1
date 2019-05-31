@@ -11,10 +11,14 @@ public class KeyPressEvent : MonoBehaviour
 {
     [SerializeField] private List<KeyMap> KeyMapper = new List<KeyMap>();
     private Dictionary<string, Text> map = new Dictionary<string, Text>();
-    private int index = 0;
+    private int index;
+    
+    [SerializeField] private AudioSource countdown;
 
     private void Start()
     {
+        index = 0;
+        Storage.Instance.Clear();
         if (KeyMapper.Count <= 0)
         {
             throw new Exception("Invalid Key Size");
@@ -38,8 +42,6 @@ public class KeyPressEvent : MonoBehaviour
         foreach (String k in map.Keys)
         {
             if (!Input.GetKeyDown(k)) continue;
-            
-//            Debug.Log("Checking");
             check(k);
             return;
         }
@@ -48,19 +50,16 @@ public class KeyPressEvent : MonoBehaviour
     private IEnumerator waitAndExecute()
     {
         yield return new WaitForSeconds(0.9f);
-        StartCoroutine("GameLoop");
+        StartCoroutine("GameLoop", 1);
     }
 
     private void check(String k)
     {
         Trigger(k);
         var match = CheckSequence(k);
-            
-        Debug.Log(String.Format("Seq-Length: '{0}' - index: '{1}' match: '{2}'", Storage.Instance.GetOriginalSequence().Count, index, match));
 
         if (!match)
         {
-            Debug.Log("Next Scene");
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
             return;
         }
@@ -74,7 +73,6 @@ public class KeyPressEvent : MonoBehaviour
         else
         {
             index++;
-            Debug.Log("Next Character");
         }
     }
 
@@ -84,29 +82,36 @@ public class KeyPressEvent : MonoBehaviour
         if (Storage.Instance.GetOriginalSequence()[index] != seq)
         {
             Debug.Log("Game Over");
+            int score = (Storage.Instance.GetOriginalSequence().Count * (index + 1));
+            Debug.Log(String.Format("{0}, {1}", Storage.Instance.GetOriginalSequence().Count, index));
+            Storage.Instance.setScore(score >= 4 ? score : 0 );
             return false;
         }
         else
         {
-            Debug.Log(String.Format("Seq '{0}' matched", seq));
             return true;
         }
     }
 
-    IEnumerator Countdown(int seconds)
+    IEnumerator Countdown()
     {
-        int count = seconds;
-       
-        while (count > 0) {
-           
-            // display something...
-            yield return new WaitForSeconds(1);
-            Debug.Log("Starting in..." + count);
-            count --;
-        }
+//        int count = seconds;
+//        while (count > 0) {
+//           
+//            // display something...
+//
+//            
+//            countdown.Play();
+//            yield return new WaitForSeconds(countdown.time);
+//
+//            Debug.Log("Starting in..." + count);
+//            count--;
+//        }
         
+        countdown.Play();
+        yield return new WaitWhile(() => countdown.isPlaying);
         Debug.Log("Start");
-        yield return GameLoop();
+        yield return GameLoop(3);
     }
 
     private void NextSequence()
@@ -122,17 +127,20 @@ public class KeyPressEvent : MonoBehaviour
         foreach (String each in Storage.Instance.GetOriginalSequence())
         {
             Trigger(each);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1 - ((Storage.Instance.GetOriginalSequence().Count / 120) % 10));
         }
         
         yield return null;
     }
     
 
-    private IEnumerator GameLoop()
+    private IEnumerator GameLoop(int prefill = 1)
     {
         Storage.Instance.LockKeyPressed();
-        NextSequence();
+        for (int i = 0; i < prefill; i++)
+        {
+            NextSequence();
+        }
         yield return PlaySequence();
         Storage.Instance.UnlockKeyPressed();
     }
@@ -149,20 +157,12 @@ public class KeyPressEvent : MonoBehaviour
     private IEnumerator ColorChanger([NotNull] Text text) 
     {
         if (text == null) throw new ArgumentNullException(nameof(text));
-        
-//        Color temp = text.color;
-//        text.color = Color.red;
-//        yield return new WaitForSeconds(0.2f);
-//        text.color = temp;
-
-        
         Color temp = text.color;
-        Debug.Log("Changing");
+        
         text.color = new Color(temp.r, temp.g, temp.b, 1);
         yield return new WaitForSeconds(.15f);
-        Debug.Log("Change Back");
         text.color = new Color(temp.r, temp.g, temp.b, 0.2f);
-//        yield return null;
+        yield return null;
     }    
 }
     
